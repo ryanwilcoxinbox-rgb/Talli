@@ -77,6 +77,7 @@ export function BigHome({ kid }: { kid: Kid }) {
       </div>
 
       <h2 class="h-section">Choose a way to help</h2>
+      {chores.length === 0 && <p class="note">No chores yet. Ask {s.parent.name} to add some in the parent space.</p>}
       <div class="list">
         {chores.map((c) => {
           const comp = completionFor(s, c, kid.id);

@@ -3,19 +3,41 @@ import type { Chore, Goal, Kid, State } from './types';
 import { seed } from './seed';
 import { dayKey, uid } from './lib/util';
 
-const KEY = 'talli:v1';
+const KEY = 'talli:v2';
+
+/** A brand-new family: no kids, no stars, straight into setup. */
+export function emptyState(): State {
+  return {
+    version: 2,
+    setupComplete: false,
+    parent: { name: '', avatar: '👩', pin: '' },
+    kids: [],
+    chores: [],
+    completions: [],
+    usage: {},
+    session: null,
+    goal: { title: 'Family movie night', emoji: '🎬', target: 30, stars: 0 },
+  };
+}
+
+function isState(x: unknown): x is State {
+  const s = x as State;
+  return !!s && s.version === 2 && Array.isArray(s.kids) && Array.isArray(s.chores) && !!s.parent && !!s.goal;
+}
 
 function load(): State {
   try {
+    // v1 only ever held the demo family, so everyone starts fresh.
+    localStorage.removeItem('talli:v1');
     const raw = localStorage.getItem(KEY);
     if (raw) {
-      const parsed = JSON.parse(raw) as State;
-      if (parsed.version === 1) return parsed;
+      const parsed = JSON.parse(raw);
+      if (isState(parsed)) return parsed;
     }
   } catch {
-    /* fall through to demo data */
+    /* fall through to a fresh start */
   }
-  return seed();
+  return emptyState();
 }
 
 export const state = signal<State>(load());
@@ -251,6 +273,51 @@ export function setParent(parent: State['parent']) {
   });
 }
 
-export function resetDemo() {
+// ---------- setup & data ----------
+
+export function completeSetup(d: Pick<State, 'parent' | 'kids' | 'chores' | 'goal'>) {
+  state.value = { ...emptyState(), ...d, setupComplete: true };
+}
+
+export function loadDemo() {
   state.value = seed();
+}
+
+/** Wipe everything and go back to first-run setup. */
+export function startOver() {
+  state.value = emptyState();
+}
+
+/** Keep the family and chores; empty every jar, balance and history. */
+export function resetProgress() {
+  update((s) => {
+    for (const k of s.kids) {
+      k.readyMinutes = 0;
+      k.savedMinutes = 0;
+    }
+    s.completions = [];
+    s.usage = {};
+    s.session = null;
+    s.goal.stars = 0;
+  });
+}
+
+export function exportBackup() {
+  const blob = new Blob([JSON.stringify(state.value, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `talli-backup-${day.value}.json`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+
+export function importBackup(text: string): boolean {
+  try {
+    const parsed = JSON.parse(text);
+    if (!isState(parsed)) return false;
+    state.value = { ...parsed, session: null, setupComplete: true };
+    return true;
+  } catch {
+    return false;
+  }
 }

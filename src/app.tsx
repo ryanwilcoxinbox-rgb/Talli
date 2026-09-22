@@ -7,10 +7,20 @@ import { BigHome } from './screens/BigHome';
 import { Play } from './screens/Play';
 import { Family } from './screens/Family';
 import { Parent } from './screens/Parent';
+import { Setup } from './screens/Setup';
 
 export function App() {
   const r = route.value;
   const kid = kidById(state.value, activeKidId.value);
+
+  if (!state.value.setupComplete) {
+    return (
+      <div class="app">
+        <Setup />
+        <Toast />
+      </div>
+    );
+  }
 
   let screen;
   switch (r) {

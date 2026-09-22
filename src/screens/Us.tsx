@@ -21,7 +21,14 @@ export function Us() {
 
       <SessionBanner />
 
+      {s.demo && (
+        <p class="note center">
+          This is a demo family. Set up your own from <b>Parent space</b> (PIN 1234).
+        </p>
+      )}
+
       <h1 class="h-section center">Who's helping today?</h1>
+      {s.kids.length === 0 && <p class="muted center">Add your children in the Parent space to get started.</p>}
       <div class="profile-grid">
         {s.kids.map((k) => (
           <button

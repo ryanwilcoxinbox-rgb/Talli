@@ -24,11 +24,15 @@ On a phone, open the site and choose **Add to Home Screen** to install it. It wo
 | File | What it holds |
 |---|---|
 | `src/store.ts` | All data and rules: stars, approvals, daily limits, timer |
-| `src/seed.ts` | Demo family (Sam, 4, and Alex, 10) |
+| `src/screens/Setup.tsx` | First-run setup: parent, PIN, kids, age-based chore picks, family goal |
+| `src/suggestions.ts` | Age-appropriate starter chores and default settings |
+| `src/seed.ts` | Optional demo family (Sam, 4, and Alex, 10), PIN 1234 |
 | `src/screens/` | Us (profile picker), LittleHome, BigHome, Play, Family, Parent |
 | `src/styles.css` | Design tokens from the design board (butter, coral, periwinkle, sage, aubergine) |
 
-Prototype parent PIN: **1234** (change it in Parent space → Parent settings).
+On first open, Talli walks the parent through setup: their name and PIN, each child (name, age, animal), starter chores suggested for each age, and a shared family goal. Every jar starts at zero.
+
+Parent settings → **Your data** has backup/restore (a JSON file), **Reset stars & time** (keeps the family and chores), and **Start over**.
 
 ## Design principles (from child-development research)
 

@@ -5,6 +5,7 @@ export interface Kid {
   id: string;
   name: string;
   avatar: string;
+  age?: number;
   mode: Mode;
   /** Screen minutes each star is worth. */
   minutesPerStar: number;
@@ -53,7 +54,11 @@ export interface Goal {
 }
 
 export interface State {
-  version: 1;
+  version: 2;
+  /** False until the parent has finished first-run setup. */
+  setupComplete: boolean;
+  /** True while exploring the built-in demo family. */
+  demo?: boolean;
   parent: { name: string; avatar: string; pin: string };
   kids: Kid[];
   chores: Chore[];

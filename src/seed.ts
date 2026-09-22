@@ -25,11 +25,13 @@ export function seed(): State {
   };
 
   return {
-    version: 1,
+    version: 2,
+    setupComplete: true,
+    demo: true,
     parent: { name: 'Talli', avatar: '👩', pin: '1234' },
     kids: [
-      { id: sam, name: 'Sam', avatar: 'bear', mode: 'little', minutesPerStar: 10, dailyLimit: 60, trusted: false, readyMinutes: 30, savedMinutes: 0 },
-      { id: alex, name: 'Alex', avatar: 'fox', mode: 'big', minutesPerStar: 5, dailyLimit: 60, trusted: false, readyMinutes: 30, savedMinutes: 20 },
+      { id: sam, name: 'Sam', avatar: 'bear', age: 4, mode: 'little', minutesPerStar: 10, dailyLimit: 60, trusted: false, readyMinutes: 30, savedMinutes: 0 },
+      { id: alex, name: 'Alex', avatar: 'fox', age: 10, mode: 'big', minutesPerStar: 5, dailyLimit: 60, trusted: false, readyMinutes: 30, savedMinutes: 20 },
     ],
     chores,
     completions: [

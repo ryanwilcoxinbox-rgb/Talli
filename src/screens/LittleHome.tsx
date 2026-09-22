@@ -84,6 +84,7 @@ export function LittleHome({ kid }: { kid: Kid }) {
               : 'Play time!'}
       </button>
 
+      {chores.length === 0 && <p class="note center">No chores yet. Ask {s.parent.name} to add some!</p>}
       <div class="chore-grid">
         {chores.map((c) => {
           const comp = completionFor(s, c, kid.id);

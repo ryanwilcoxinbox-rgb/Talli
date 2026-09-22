@@ -1,4 +1,4 @@
-import { useState } from 'preact/hooks';
+import { useRef, useState } from 'preact/hooks';
 import type { Chore, Kid, Mode, Tint } from '../types';
 import {
   state,
@@ -10,7 +10,10 @@ import {
   pendingList,
   removeChore,
   removeKid,
-  resetDemo,
+  exportBackup,
+  importBackup,
+  resetProgress,
+  startOver,
   setGoal,
   setParent,
   upsertChore,
@@ -22,6 +25,7 @@ import { Icon, type IconName } from '../components/Icon';
 import { Jar, Leaf, Star } from '../components/Art';
 import { Field, Segmented, Sheet, Stepper, Toggle } from '../components/Controls';
 import { plural, uid } from '../lib/util';
+import { defaultsFor, suggestionsFor } from '../suggestions';
 
 export function Parent() {
   return parentUnlocked.value ? <ParentSpace /> : <PinGate />;
@@ -71,7 +75,7 @@ function PinGate() {
           ⌫
         </button>
       </div>
-      {pin === '1234' && <p class="note center">Prototype PIN is 1234. You can change it in Parent settings.</p>}
+      {state.value.demo && <p class="note center">The demo family's PIN is 1234.</p>}
     </main>
   );
 }
@@ -96,9 +100,8 @@ function ParentSpace() {
     id: uid(),
     name: '',
     avatar: Object.keys(AVATARS).find((a) => !s.kids.some((k) => k.avatar === a)) ?? 'owl',
-    mode: 'big',
-    minutesPerStar: 5,
-    dailyLimit: 60,
+    age: 8,
+    ...defaultsFor(8),
     trusted: false,
     readyMinutes: 0,
     savedMinutes: 0,
@@ -125,6 +128,23 @@ function ParentSpace() {
           <Icon name="lock" />
         </button>
       </header>
+
+      {s.demo && (
+        <div class="card demo-banner">
+          <b>You're exploring a demo family.</b>
+          <span class="muted small">When you're ready, set up your own. Every jar starts empty.</span>
+          <button
+            class="btn btn-coral btn-small"
+            onClick={() => {
+              startOver();
+              activeKidId.value = null;
+              parentUnlocked.value = false;
+            }}
+          >
+            Set up my family
+          </button>
+        </div>
+      )}
 
       <section class="approve-card">
         <div class="approve-head">
@@ -270,6 +290,16 @@ function KidEditor({ kid, onClose }: { kid: Kid; onClose: () => void }) {
           ))}
         </div>
       </Field>
+      <Field label="Age">
+        <Stepper
+          label="age"
+          value={k.age ?? (k.mode === 'little' ? 4 : 9)}
+          min={2}
+          max={16}
+          onChange={(age) => set(exists ? { age } : { age, ...defaultsFor(age) })}
+          format={(v) => `${v} years`}
+        />
+      </Field>
       <Field label="Layout" hint="Little helper is picture-first and needs no reading">
         <Segmented<Mode>
           options={[
@@ -301,7 +331,11 @@ function KidEditor({ kid, onClose }: { kid: Kid; onClose: () => void }) {
         disabled={!k.name.trim()}
         onClick={() => {
           upsertKid({ ...k, name: k.name.trim() });
-          showToast(exists ? 'Saved' : `Welcome, ${k.name.trim()}!`);
+          if (!exists) {
+            // Start new kids with a few chores that suit their age.
+            for (const c of suggestionsFor(k.age ?? 8).slice(0, 4)) upsertChore({ ...c, id: uid(), assignee: k.id });
+          }
+          showToast(exists ? 'Saved' : `Welcome, ${k.name.trim()}! We added a few starter chores.`);
           onClose();
         }}
       >
@@ -552,7 +586,8 @@ function SettingsSheet({ onClose }: { onClose: () => void }) {
   const parent = state.value.parent;
   const [p, setP] = useState(parent);
   const [pin, setPin] = useState('');
-  const [confirmReset, setConfirmReset] = useState(false);
+  const [confirm, setConfirm] = useState<null | 'progress' | 'all'>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
   const pinOk = pin === '' || /^\d{4}$/.test(pin);
 
   return (
@@ -590,27 +625,82 @@ function SettingsSheet({ onClose }: { onClose: () => void }) {
       >
         Save
       </button>
-      {confirmReset ? (
+      <h3 class="sheet-sub">Your data</h3>
+      <p class="note">
+        Talli keeps everything on this device. Save a backup now and then, especially before clearing your browser or
+        switching phones.
+      </p>
+      <div class="btn-pair">
+        <button class="btn btn-outline btn-small" onClick={exportBackup}>
+          Save a backup
+        </button>
+        <button class="btn btn-outline btn-small" onClick={() => fileRef.current?.click()}>
+          Restore backup
+        </button>
+      </div>
+      <input
+        ref={fileRef}
+        type="file"
+        accept="application/json,.json"
+        hidden
+        onChange={async (e) => {
+          const f = e.currentTarget.files?.[0];
+          if (!f) return;
+          if (importBackup(await f.text())) {
+            showToast('Family restored');
+            activeKidId.value = null;
+            onClose();
+          } else {
+            showToast("That file doesn't look like a Talli backup");
+          }
+        }}
+      />
+
+      {confirm === 'progress' && (
         <div class="confirm">
-          <span>Reset everything back to the demo family?</span>
+          <span>Empty every jar and balance? Your family, chores and settings stay.</span>
           <button
             class="btn btn-small btn-coral"
             onClick={() => {
-              resetDemo();
-              activeKidId.value = null;
+              resetProgress();
+              showToast('All jars emptied. A fresh start!');
               onClose();
             }}
           >
-            Reset
+            Empty jars
           </button>
-          <button class="btn btn-small btn-outline" onClick={() => setConfirmReset(false)}>
+          <button class="btn btn-small btn-outline" onClick={() => setConfirm(null)}>
             Cancel
           </button>
         </div>
-      ) : (
-        <button class="link danger center-block" onClick={() => setConfirmReset(true)}>
-          Reset demo data
-        </button>
+      )}
+      {confirm === 'all' && (
+        <div class="confirm">
+          <span>Delete this family completely and start setup again? This can't be undone without a backup.</span>
+          <button
+            class="btn btn-small btn-coral"
+            onClick={() => {
+              startOver();
+              activeKidId.value = null;
+              parentUnlocked.value = false;
+            }}
+          >
+            Start over
+          </button>
+          <button class="btn btn-small btn-outline" onClick={() => setConfirm(null)}>
+            Cancel
+          </button>
+        </div>
+      )}
+      {!confirm && (
+        <div class="danger-links">
+          <button class="link danger" onClick={() => setConfirm('progress')}>
+            Reset stars &amp; time
+          </button>
+          <button class="link danger" onClick={() => setConfirm('all')}>
+            Start over
+          </button>
+        </div>
       )}
     </Sheet>
   );
