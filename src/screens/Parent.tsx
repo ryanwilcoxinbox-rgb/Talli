@@ -23,7 +23,7 @@ import { activeKidId, go, parentUnlocked, showToast } from '../router';
 import { AVATARS, Avatar, PARENT_AVATARS } from '../components/Avatar';
 import { Icon, type IconName } from '../components/Icon';
 import { Jar, Leaf, Star } from '../components/Art';
-import { Field, Segmented, Sheet, Stepper, Toggle } from '../components/Controls';
+import { Field, KidsCallField, Segmented, Sheet, Stepper, Toggle } from '../components/Controls';
 import { plural, uid } from '../lib/util';
 import { defaultsFor, suggestionsFor } from '../suggestions';
 
@@ -525,7 +525,7 @@ function TrustSheet({ onClose }: { onClose: () => void }) {
             <Avatar kind={k.avatar} size={36} />
             <span>
               {k.name}
-              <small>{k.trusted ? 'Chores count straight away' : `${s.parent.name} checks each chore`}</small>
+              <small>{k.trusted ? 'Chores count straight away' : 'You check each chore'}</small>
             </span>
           </div>
           <Toggle label={`Trust ${k.name}`} checked={k.trusted} onChange={(trusted) => patchKid(k.id, { trusted })} />
@@ -592,9 +592,10 @@ function SettingsSheet({ onClose }: { onClose: () => void }) {
 
   return (
     <Sheet open onClose={onClose} title="Parent settings">
-      <Field label="Your name" hint="Kids see “Waiting for …”">
+      <Field label="Your name" hint="For the grown-up screens">
         <input class="input" value={p.name} onInput={(e) => setP({ ...p, name: e.currentTarget.value })} />
       </Field>
+      <KidsCallField value={p.kidsCall ?? ''} onChange={(kidsCall) => setP({ ...p, kidsCall })} />
       <Field label="Your avatar">
         <div class="emoji-pick">
           {PARENT_AVATARS.map((a) => (
@@ -618,7 +619,7 @@ function SettingsSheet({ onClose }: { onClose: () => void }) {
         class="btn btn-aub wide"
         disabled={!pinOk || !p.name.trim()}
         onClick={() => {
-          setParent({ ...p, name: p.name.trim(), pin: pin || parent.pin });
+          setParent({ ...p, name: p.name.trim(), kidsCall: p.kidsCall?.trim(), pin: pin || parent.pin });
           showToast(pin ? 'Saved, with your new PIN' : 'Saved');
           onClose();
         }}

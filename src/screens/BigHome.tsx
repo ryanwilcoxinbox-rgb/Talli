@@ -2,6 +2,7 @@ import { useState } from 'preact/hooks';
 import type { Chore, Kid } from '../types';
 import {
   state,
+  kidsName,
   choresFor,
   completeChore,
   completionFor,
@@ -77,7 +78,7 @@ export function BigHome({ kid }: { kid: Kid }) {
       </div>
 
       <h2 class="h-section">Choose a way to help</h2>
-      {chores.length === 0 && <p class="note">No chores yet. Ask {s.parent.name} to add some in the parent space.</p>}
+      {chores.length === 0 && <p class="note">No chores yet. Ask {kidsName(s.parent)} to add some in the parent space.</p>}
       <div class="list">
         {chores.map((c) => {
           const comp = completionFor(s, c, kid.id);
@@ -89,7 +90,7 @@ export function BigHome({ kid }: { kid: Kid }) {
                 <b>{c.title}</b>
                 <small>
                   {comp?.status === 'pending'
-                    ? `Waiting for ${s.parent.name}`
+                    ? `Waiting for ${kidsName(s.parent)}`
                     : comp?.status === 'approved'
                       ? byOther
                         ? `Done by ${byOther.name}. Thanks!`
@@ -189,7 +190,7 @@ function ChoreSheet({ kid, chore, onClose }: { kid: Kid; chore: Chore; onClose: 
       </p>
       {comp ? (
         <p class="note center">
-          {comp.status === 'pending' ? `Waiting for ${s.parent.name} to check ✨` : 'Already done today. Thank you!'}
+          {comp.status === 'pending' ? `Waiting for ${kidsName(s.parent)} to check ✨` : 'Already done today. Thank you!'}
         </p>
       ) : (
         <button
@@ -199,7 +200,7 @@ function ChoreSheet({ kid, chore, onClose }: { kid: Kid; chore: Chore; onClose: 
             showToast(
               r === 'approved'
                 ? `Nice work, ${kid.name}! +${chore.stars * kid.minutesPerStar} min`
-                : `Nice work, ${kid.name}! Sent to ${s.parent.name} to check.`,
+                : `Nice work, ${kid.name}! Sent to ${kidsName(s.parent)} to check.`,
             );
             onClose();
           }}

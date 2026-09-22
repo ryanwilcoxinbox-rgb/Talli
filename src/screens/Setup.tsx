@@ -5,7 +5,7 @@ import { activeKidId, go, showToast } from '../router';
 import { AVATARS, Avatar, PARENT_AVATARS } from '../components/Avatar';
 import { Icon } from '../components/Icon';
 import { Leaf, Logo, Star } from '../components/Art';
-import { Field, Stepper } from '../components/Controls';
+import { Field, KidsCallField, Stepper } from '../components/Controls';
 import { defaultsFor, suggestionsFor, type Suggestion } from '../suggestions';
 import { uid } from '../lib/util';
 
@@ -17,13 +17,15 @@ interface DraftKid {
   chores: Suggestion[];
 }
 
+type DraftParent = { name: string; kidsCall: string; avatar: string; pin: string };
+
 const GOAL_EMOJIS = ['🎬', '🍕', '🏞️', '🎳', '🍦', '🏊', '🎨', '🧁', '🎲', '⛺'];
 const STEPS = ['welcome', 'you', 'kids', 'chores', 'goal', 'done'] as const;
 
 /** First-run setup: the parent adds their own family, starting from zero. */
 export function Setup() {
   const [step, setStep] = useState(0);
-  const [parent, setParent] = useState({ name: '', avatar: '👩', pin: '' });
+  const [parent, setParent] = useState<DraftParent>({ name: '', kidsCall: '', avatar: '👩', pin: '' });
   const [kids, setKids] = useState<DraftKid[]>([]);
   const [goal, setGoal] = useState({ title: 'Family movie night', emoji: '🎬', target: 30 });
   const fileRef = useRef<HTMLInputElement>(null);
@@ -47,7 +49,7 @@ export function Setup() {
       savedMinutes: 0,
     }));
     const chores: Chore[] = kids.flatMap((k) => k.chores.map((c) => ({ ...c, id: uid(), assignee: k.id })));
-    completeSetup({ parent: { ...parent, name: parent.name.trim() }, kids: fullKids, chores, goal: { ...goal, stars: 0 } });
+    completeSetup({ parent: { ...parent, name: parent.name.trim(), kidsCall: parent.kidsCall.trim() }, kids: fullKids, chores, goal: { ...goal, stars: 0 } });
     activeKidId.value = null;
     go('us');
   };
@@ -158,23 +160,24 @@ function YouStep({
   setParent,
   onNext,
 }: {
-  parent: { name: string; avatar: string; pin: string };
-  setParent: (p: { name: string; avatar: string; pin: string }) => void;
+  parent: DraftParent;
+  setParent: (p: DraftParent) => void;
   onNext: () => void;
 }) {
-  const ok = parent.name.trim() && /^\d{4}$/.test(parent.pin);
+  const ok = parent.name.trim() && parent.kidsCall.trim() && /^\d{4}$/.test(parent.pin);
   return (
     <>
       <h1 class="setup-title">First, you</h1>
-      <p class="muted">The kids will see your name when a chore is waiting for you to check.</p>
+      <p class="muted">Your name is for the grown-up screens. The kids will see what they call you.</p>
       <Field label="Your name">
         <input
           class="input"
           value={parent.name}
-          placeholder="e.g. Talli, Mum, Dad"
+          placeholder="e.g. Talli"
           onInput={(e) => setParent({ ...parent, name: e.currentTarget.value })}
         />
       </Field>
+      <KidsCallField value={parent.kidsCall} onChange={(kidsCall) => setParent({ ...parent, kidsCall })} />
       <Field label="Your avatar">
         <div class="emoji-pick">
           {PARENT_AVATARS.map((a) => (

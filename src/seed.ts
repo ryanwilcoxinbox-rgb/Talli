@@ -28,7 +28,7 @@ export function seed(): State {
     version: 2,
     setupComplete: true,
     demo: true,
-    parent: { name: 'Talli', avatar: '👩', pin: '1234' },
+    parent: { name: 'Talli', kidsCall: 'Mum', avatar: '👩', pin: '1234' },
     kids: [
       { id: sam, name: 'Sam', avatar: 'bear', age: 4, mode: 'little', minutesPerStar: 10, dailyLimit: 60, trusted: false, readyMinutes: 30, savedMinutes: 0 },
       { id: alex, name: 'Alex', avatar: 'fox', age: 10, mode: 'big', minutesPerStar: 5, dailyLimit: 60, trusted: false, readyMinutes: 30, savedMinutes: 20 },

@@ -59,7 +59,8 @@ export interface State {
   setupComplete: boolean;
   /** True while exploring the built-in demo family. */
   demo?: boolean;
-  parent: { name: string; avatar: string; pin: string };
+  /** `kidsCall` is what the children call this parent ("Mum", "Dad"); kid-facing text uses it. */
+  parent: { name: string; kidsCall?: string; avatar: string; pin: string };
   kids: Kid[];
   chores: Chore[];
   completions: Completion[];

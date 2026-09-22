@@ -127,3 +127,21 @@ export function Chips({
     </div>
   );
 }
+
+const CALL_NAMES = ['Mum', 'Dad', 'Mom', 'Mama', 'Papa', 'Grandma', 'Grandad'];
+
+/** "What do your kids call you?" Kids see this instead of the parent's real name. */
+export function KidsCallField({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  return (
+    <Field label="What do your kids call you?" hint="Kids see this, e.g. “Let's show Mum!”">
+      <div class="call-pick">
+        {CALL_NAMES.map((n) => (
+          <button class={value === n ? 'chip on' : 'chip'} onClick={() => onChange(n)}>
+            {n}
+          </button>
+        ))}
+      </div>
+      <input class="input" value={value} placeholder="Or type your own" onInput={(e) => onChange(e.currentTarget.value)} />
+    </Field>
+  );
+}

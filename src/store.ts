@@ -10,7 +10,7 @@ export function emptyState(): State {
   return {
     version: 2,
     setupComplete: false,
-    parent: { name: '', avatar: '👩', pin: '' },
+    parent: { name: '', kidsCall: '', avatar: '👩', pin: '' },
     kids: [],
     chores: [],
     completions: [],
@@ -321,3 +321,6 @@ export function importBackup(text: string): boolean {
     return false;
   }
 }
+
+/** How the kids address the parent: "Mum" rather than "Ryan Wilcox". */
+export const kidsName = (parent: State['parent']) => parent.kidsCall?.trim() || parent.name.split(' ')[0];

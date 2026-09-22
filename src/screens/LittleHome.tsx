@@ -1,6 +1,6 @@
 import { useState } from 'preact/hooks';
 import type { Chore, Kid } from '../types';
-import { state, choresFor, completeChore, completionFor, day, limitLeft, playableMinutes, startSession } from '../store';
+import { state, kidsName, choresFor, completeChore, completionFor, day, limitLeft, playableMinutes, startSession } from '../store';
 import { go } from '../router';
 import { Avatar } from '../components/Avatar';
 import { Icon } from '../components/Icon';
@@ -29,7 +29,7 @@ export function LittleHome({ kid }: { kid: Kid }) {
     const msg =
       result === 'approved'
         ? `You're a super helper! A star for your jar!`
-        : `You're a super helper! Let's show ${s.parent.name}.`;
+        : `You're a super helper! Let's show ${kidsName(s.parent)}.`;
     setCheer(msg);
     speak(msg);
     setTimeout(() => setCheer(null), 2600);
@@ -84,7 +84,7 @@ export function LittleHome({ kid }: { kid: Kid }) {
               : 'Play time!'}
       </button>
 
-      {chores.length === 0 && <p class="note center">No chores yet. Ask {s.parent.name} to add some!</p>}
+      {chores.length === 0 && <p class="note center">No chores yet. Ask {kidsName(s.parent)} to add some!</p>}
       <div class="chore-grid">
         {chores.map((c) => {
           const comp = completionFor(s, c, kid.id);

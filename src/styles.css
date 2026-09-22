@@ -1819,3 +1819,13 @@ p {
   justify-content: center;
   gap: 18px;
 }
+
+.call-pick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.call-pick .chip {
+  padding: 8px 14px;
+}
